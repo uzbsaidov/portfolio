@@ -1,0 +1,13 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+.env
+.git
+.gitignore
+survey.db
+**/survey.db
+npm-debug.log
+Dockerfile
+docker-compose*.yml

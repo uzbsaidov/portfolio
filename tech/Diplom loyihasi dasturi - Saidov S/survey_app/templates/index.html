@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>So'rovnoma Tahlil Tizimi | Saidov S.A.</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --primary: #1e3a5f;
+  --accent:  #2ecc71;
+  --accent2: #3498db;
+  --bg:      #f0f4f8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #333; }
+
+/* ── Sidebar ─────────────────────────────────────────────────── */
+#sidebar {
+  position: fixed; top: 0; left: 0; width: 240px; height: 100vh;
+  background: var(--primary); color: #fff; z-index: 100;
+  display: flex; flex-direction: column; padding: 0;
+  transition: width .3s;
+}
+#sidebar .brand {
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+}
+#sidebar .brand h5 { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 2px; }
+#sidebar .brand p  { font-size: 11px; color: rgba(255,255,255,.55); }
+#sidebar .nav-link {
+  color: rgba(255,255,255,.75); padding: 11px 20px; display: flex;
+  align-items: center; gap: 10px; font-size: 13px; cursor: pointer;
+  border: none; background: none; width: 100%; text-align: left;
+  transition: background .2s, color .2s;
+}
+#sidebar .nav-link:hover, #sidebar .nav-link.active {
+  background: rgba(255,255,255,.1); color: #fff;
+}
+#sidebar .nav-link i { width: 18px; text-align: center; }
+.sidebar-footer {
+  margin-top: auto; padding: 16px;
+  font-size: 11px; color: rgba(255,255,255,.4);
+  border-top: 1px solid rgba(255,255,255,.1);
+}
+
+/* ── Main ────────────────────────────────────────────────────── */
+#main { margin-left: 240px; min-height: 100vh; }
+#topbar {
+  background: #fff; padding: 14px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 1px 4px rgba(0,0,0,.07); position: sticky; top: 0; z-index: 99;
+}
+#topbar .page-title { font-size: 16px; font-weight: 600; color: var(--primary); }
+#content { padding: 28px; }
+
+/* ── Cards ───────────────────────────────────────────────────── */
+.card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.07); }
+.card-header-custom {
+  background: var(--primary); color: #fff; border-radius: 12px 12px 0 0;
+  padding: 14px 20px; font-weight: 600; font-size: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.stat-card {
+  background: #fff; border-radius: 12px; padding: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.07);
+  display: flex; align-items: center; gap: 16px;
+}
+.stat-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.stat-val  { font-size: 24px; font-weight: 700; color: var(--primary); }
+.stat-label{ font-size: 12px; color: #888; }
+
+/* ── Upload zone ─────────────────────────────────────────────── */
+#drop-zone {
+  border: 2px dashed #cdd5df; border-radius: 12px;
+  padding: 40px 20px; text-align: center; cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+#drop-zone.dragover { border-color: var(--accent2); background: #eef6fd; }
+#drop-zone i { font-size: 40px; color: #a0aec0; }
+#drop-zone p  { margin-top: 10px; color: #718096; font-size: 14px; }
+
+/* ── Badge colors ────────────────────────────────────────────── */
+.badge-pos  { background: #d4edda; color: #155724; }
+.badge-neg  { background: #f8d7da; color: #721c24; }
+.badge-neu  { background: #e2e3e5; color: #383d41; }
+
+/* ── Login overlay ───────────────────────────────────────────── */
+#login-overlay {
+  position: fixed; inset: 0; background: rgba(30,58,95,.92);
+  z-index: 9999; display: flex; align-items: center; justify-content: center;
+}
+.login-box {
+  background: #fff; border-radius: 16px; padding: 40px 36px;
+  width: 360px; box-shadow: 0 20px 60px rgba(0,0,0,.3);
+}
+.login-box h4 { color: var(--primary); font-weight: 700; margin-bottom: 4px; }
+.login-box p  { color: #888; font-size: 13px; margin-bottom: 24px; }
+
+/* ── Tables ──────────────────────────────────────────────────── */
+.table-sm td, .table-sm th { font-size: 12px; vertical-align: middle; }
+.progress-bar-custom { height: 6px; border-radius: 3px; background: var(--accent2); }
+
+/* ── Section ─────────────────────────────────────────────────── */
+.section { display: none; }
+.section.active { display: block; }
+
+/* ── Result block ────────────────────────────────────────────── */
+.result-block { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.result-block h6 { color: var(--primary); font-weight: 700; margin-bottom: 14px; border-bottom: 2px solid var(--bg); padding-bottom: 8px; }
+
+/* ── Metric badge ─────────────────────────────────────────────── */
+.metric-pill {
+  display: inline-flex; flex-direction: column; align-items: center;
+  background: var(--bg); border-radius: 10px; padding: 10px 16px;
+  min-width: 80px; margin: 4px;
+}
+.metric-pill .val { font-size: 20px; font-weight: 700; color: var(--primary); }
+.metric-pill .lbl { font-size: 10px; color: #888; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN OVERLAY -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="text-center mb-3">
+      <div style="width:56px;height:56px;background:var(--primary);border-radius:14px;
+           display:inline-flex;align-items:center;justify-content:center;">
+        <i class="fas fa-chart-pie text-white fs-4"></i>
+      </div>
+    </div>
+    <h4 class="text-center">So'rovnoma Tahlil</h4>
+    <p class="text-center">Tizimga kirish</p>
+    <div id="login-error" class="alert alert-danger d-none py-2 small"></div>
+    <div class="mb-3">
+      <label class="form-label small fw-semibold">Foydalanuvchi nomi</label>
+      <input id="inp-user" type="text" class="form-control" placeholder="admin" value="admin"/>
+    </div>
+    <div class="mb-4">
+      <label class="form-label small fw-semibold">Parol</label>
+      <input id="inp-pass" type="password" class="form-control" placeholder="••••••" value="admin123"/>
+    </div>
+    <button class="btn w-100 text-white fw-semibold" style="background:var(--primary)"
+            onclick="doLogin()">Kirish <i class="fas fa-arrow-right ms-1"></i></button>
+    <p class="text-center mt-3 text-muted" style="font-size:11px">
+      Demo: admin / admin123
+    </p>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="brand">
+    <h5><i class="fas fa-brain me-1"></i> So'rovnoma AI</h5>
+    <p>Tahlil tizimi v1.0</p>
+  </div>
+  <div class="mt-2">
+    <button class="nav-link active" onclick="showSection('s-home',this)">
+      <i class="fas fa-home"></i> Bosh sahifa
+    </button>
+    <button class="nav-link" onclick="showSection('s-upload',this)">
+      <i class="fas fa-upload"></i> Fayl yuklash
+    </button>
+    <button class="nav-link" onclick="showSection('s-results',this)">
+      <i class="fas fa-chart-bar"></i> Natijalar
+    </button>
+    <button class="nav-link" onclick="showSection('s-surveys',this)">
+      <i class="fas fa-list"></i> So'rovnomalar
+    </button>
+    <button class="nav-link" onclick="showSection('s-about',this)">
+      <i class="fas fa-info-circle"></i> Loyiha haqida
+    </button>
+  </div>
+  <div class="sidebar-footer">
+    <div id="sidebar-user">Yuklanmoqda...</div>
+    <button class="btn btn-sm btn-outline-light mt-2 w-100" onclick="doLogout()">
+      <i class="fas fa-sign-out-alt me-1"></i> Chiqish
+    </button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <span class="page-title" id="topbar-title">Bosh sahifa</span>
+    <span class="text-muted small">Saidov Suhrob A. · TDTU 178-22</span>
+  </div>
+
+  <div id="content">
+
+    <!-- HOME -->
+    <div id="s-home" class="section active">
+      <div class="row g-3 mb-4">
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#dbeafe">
+              <i class="fas fa-file-csv" style="color:#2563eb"></i>
+            </div>
+            <div>
+              <div class="stat-val" id="stat-surveys">0</div>
+              <div class="stat-label">Yuklangan fayllar</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#dcfce7">
+              <i class="fas fa-robot" style="color:#16a34a"></i>
+            </div>
+            <div>
+              <div class="stat-val">91%</div>
+              <div class="stat-label">Model aniqligi (RF)</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#fef9c3">
+              <i class="fas fa-layer-group" style="color:#ca8a04"></i>
+            </div>
+            <div>
+              <div class="stat-val">4</div>
+              <div class="stat-label">Optimal klasterlar</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#fce7f3">
+              <i class="fas fa-comments" style="color:#be185d"></i>
+            </div>
+            <div>
+              <div class="stat-val">82%</div>
+              <div class="stat-label">Sentiment aniqligi</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-header-custom">
+              <i class="fas fa-info-circle"></i> Tizim haqida
+            </div>
+            <div class="card-body p-4">
+              <p class="mb-3">Bu tizim <strong>ijtimoiy so'rovnomalar</strong> natijalarini avtomatik tahlil qiladi. 
+              Uch asosiy AI modeli ishlatiladi:</p>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="p-3 rounded-3" style="background:#f8f9fa;border-left:4px solid #2563eb">
+                    <div class="fw-bold mb-1" style="color:#2563eb"><i class="fas fa-tree me-1"></i> Random Forest</div>
+                    <div class="small text-muted">Respondentlarni guruhlarga klassifikatsiya qiladi</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="p-3 rounded-3" style="background:#f8f9fa;border-left:4px solid #16a34a">
+                    <div class="fw-bold mb-1" style="color:#16a34a"><i class="fas fa-circle-nodes me-1"></i> K-means</div>
+                    <div class="small text-muted">Respondentlarni tabiiy guruhlarga ajratadi</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="p-3 rounded-3" style="background:#f8f9fa;border-left:4px solid #be185d">
+                    <div class="fw-bold mb-1" style="color:#be185d"><i class="fas fa-smile me-1"></i> VADER</div>
+                    <div class="small text-muted">Matnli javoblarni sentiment tahlil qiladi</div>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-3 p-3 rounded-3" style="background:#eff6ff">
+                <b>Qo'llanilishi:</b> CSV yoki Excel faylini yuklang → Tahlil boshlang → Natijalarni ko'ring
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-header-custom">
+              <i class="fas fa-rocket"></i> Tez boshlash
+            </div>
+            <div class="card-body p-4 d-flex flex-column gap-2">
+              <button class="btn text-white w-100" style="background:var(--primary)"
+                      onclick="showSection('s-upload', document.querySelectorAll('#sidebar .nav-link')[1])">
+                <i class="fas fa-upload me-2"></i> Fayl yuklash
+              </button>
+              <button class="btn btn-outline-secondary w-100" onclick="loadSurveyList()">
+                <i class="fas fa-sync me-2"></i> Yangilash
+              </button>
+              <hr/>
+              <div class="small text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                Demo uchun istalgan CSV yoki Excel faylini yuklang. Raqamli ustunlar uchun ML tahlil, matnli ustunlar uchun sentiment tahlil avtomatik bajariladi.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPLOAD -->
+    <div id="s-upload" class="section">
+      <div class="card mb-4">
+        <div class="card-header-custom"><i class="fas fa-upload"></i> So'rovnoma faylini yuklash</div>
+        <div class="card-body p-4">
+          <div id="drop-zone" onclick="document.getElementById('file-input').click()"
+               ondragover="event.preventDefault();this.classList.add('dragover')"
+               ondragleave="this.classList.remove('dragover')"
+               ondrop="handleDrop(event)">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p><strong>CSV yoki Excel (.xlsx, .xls) faylini bu yerga tashlang</strong></p>
+            <p style="font-size:12px">yoki bosib fayl tanlang</p>
+          </div>
+          <input id="file-input" type="file" accept=".csv,.xlsx,.xls" class="d-none"
+                 onchange="handleFile(this.files[0])"/>
+
+          <div id="upload-preview" class="d-none mt-4">
+            <hr/>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="mb-0"><i class="fas fa-eye me-1"></i> Fayl ko'rinishi</h6>
+              <span id="upload-info" class="badge bg-success"></span>
+            </div>
+            <div id="preview-table-wrap" class="table-responsive mb-3"></div>
+            <div class="row g-2 align-items-end">
+              <div class="col-md-4">
+                <label class="form-label small">Maqsad ustun (ixtiyoriy – klassifikatsiya uchun)</label>
+                <select id="target-col-select" class="form-select form-select-sm">
+                  <option value="">— tanlang —</option>
+                </select>
+              </div>
+              <div class="col-auto">
+                <button class="btn text-white" style="background:var(--accent2)"
+                        onclick="startAnalysis()">
+                  <i class="fas fa-play me-1"></i> Tahlilni boshlash
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="analyze-progress" class="d-none mt-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="spinner-border spinner-border-sm text-primary"></div>
+              <span id="analyze-status" class="text-muted small">Tahlil bajarilmoqda...</span>
+            </div>
+            <div class="progress mt-2" style="height:6px">
+              <div id="analyze-bar" class="progress-bar bg-success" style="width:0%;transition:width .5s"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div id="s-results" class="section">
+      <div id="no-results" class="text-center py-5 text-muted">
+        <i class="fas fa-chart-bar fa-3x mb-3 opacity-25"></i>
+        <p>Hali tahlil natijalari yo'q.<br>Avval fayl yuklang va tahlil bajaring.</p>
+      </div>
+      <div id="results-container" class="d-none">
+
+        <div class="row g-3 mb-4" id="res-metrics-row"></div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <div class="result-block">
+              <h6><i class="fas fa-layer-group me-1"></i> Klaster taqsimoti</h6>
+              <canvas id="chart-cluster" height="220"></canvas>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="result-block">
+              <h6><i class="fas fa-smile me-1"></i> Sentiment taqsimoti</h6>
+              <canvas id="chart-sentiment" height="220"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <div class="result-block">
+              <h6><i class="fas fa-star me-1"></i> Xususiyatlar muhimligi (Feature Importance)</h6>
+              <canvas id="chart-fi" height="220"></canvas>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="result-block">
+              <h6><i class="fas fa-table me-1"></i> Klaster tafsiloti</h6>
+              <div id="cluster-table"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="result-block">
+          <h6><i class="fas fa-comments me-1"></i> Sentiment namunalari</h6>
+          <div id="sentiment-samples"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SURVEYS LIST -->
+    <div id="s-surveys" class="section">
+      <div class="card">
+        <div class="card-header-custom d-flex justify-content-between">
+          <span><i class="fas fa-list me-1"></i> Yuklangan so'rovnomalar</span>
+          <button class="btn btn-sm btn-light" onclick="loadSurveyList()">
+            <i class="fas fa-sync"></i>
+          </button>
+        </div>
+        <div class="card-body p-0">
+          <div id="surveys-table-wrap" class="table-responsive">
+            <div class="text-center py-5 text-muted">Yuklanmoqda...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABOUT -->
+    <div id="s-about" class="section">
+      <div class="card">
+        <div class="card-header-custom"><i class="fas fa-graduation-cap"></i> Diplom loyihasi haqida</div>
+        <div class="card-body p-4">
+          <div class="row g-4">
+            <div class="col-md-6">
+              <h6 class="fw-bold mb-3">Loyiha ma'lumotlari</h6>
+              <table class="table table-sm">
+                <tr><td class="text-muted">Muallif</td><td><strong>Saidov Suhrob Alisherovich</strong></td></tr>
+                <tr><td class="text-muted">Guruh</td><td>178-22</td></tr>
+                <tr><td class="text-muted">Rahbar</td><td>Maraximov Avazjon Raximovich</td></tr>
+                <tr><td class="text-muted">Universitet</td><td>TDTU (Islom Karimov nomidagi)</td></tr>
+                <tr><td class="text-muted">Kafedra</td><td>AIBTS</td></tr>
+                <tr><td class="text-muted">Amaliyot joyi</td><td>Ustoz AI platformasi</td></tr>
+                <tr><td class="text-muted">Yil</td><td>2026</td></tr>
+              </table>
+            </div>
+            <div class="col-md-6">
+              <h6 class="fw-bold mb-3">Texnologiyalar</h6>
+              <div class="d-flex flex-wrap gap-2">
+                <span class="badge bg-primary">Python 3.10</span>
+                <span class="badge bg-success">Flask 2.3</span>
+                <span class="badge bg-warning text-dark">scikit-learn 1.3</span>
+                <span class="badge bg-info text-dark">pandas 2.0</span>
+                <span class="badge bg-danger">VADER 3.3</span>
+                <span class="badge bg-secondary">Bootstrap 5.3</span>
+                <span class="badge bg-dark">Chart.js 4.4</span>
+                <span class="badge" style="background:#6f42c1">SQLite</span>
+                <span class="badge" style="background:#0d6efd">Random Forest</span>
+                <span class="badge" style="background:#198754">K-means</span>
+              </div>
+              <h6 class="fw-bold mt-4 mb-3">Model natijalari</h6>
+              <div class="d-flex flex-wrap">
+                <div class="metric-pill">
+                  <span class="val">91%</span>
+                  <span class="lbl">Accuracy</span>
+                </div>
+                <div class="metric-pill">
+                  <span class="val">0.94</span>
+                  <span class="lbl">AUC-ROC</span>
+                </div>
+                <div class="metric-pill">
+                  <span class="val">K=4</span>
+                  <span class="lbl">Klaster</span>
+                </div>
+                <div class="metric-pill">
+                  <span class="val">82%</span>
+                  <span class="lbl">Sentiment</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 p-3 rounded-3" style="background:#eff6ff;border-left:4px solid #2563eb">
+            <strong>Mavzu:</strong> Ijtimoiy so'rovnomalar natijalarini tahlil qilish uchun sun'iy intellekt modellari va ularning dasturiy ta'minotini ishlab chiqish
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+// ─── State ────────────────────────────────────────────────────────────────
+let currentSurveyId = null;
+let charts = {};
+
+// ─── Boot ────────────────────────────────────────────────────────────────
+window.onload = async () => {
+  const r = await fetch('/api/auth/me').then(x=>x.json());
+  if (r.logged_in) {
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('sidebar-user').innerHTML =
+      `<i class="fas fa-user-circle me-1"></i> ${r.username}`;
+    loadStats();
+  }
+};
+
+// ─── Auth ─────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const u = document.getElementById('inp-user').value;
+  const p = document.getElementById('inp-pass').value;
+  const r = await fetch('/api/auth/login', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({username:u, password:p})
+  }).then(x=>x.json());
+  if (r.success) {
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('sidebar-user').innerHTML =
+      `<i class="fas fa-user-circle me-1"></i> ${r.username}`;
+    loadStats();
+  } else {
+    const el = document.getElementById('login-error');
+    el.textContent = r.error; el.classList.remove('d-none');
+  }
+}
+async function doLogout() {
+  await fetch('/api/auth/logout', {method:'POST'});
+  location.reload();
+}
+
+// ─── Navigation ───────────────────────────────────────────────────────────
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('#sidebar .nav-link').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const titles = {
+    's-home':'Bosh sahifa','s-upload':'Fayl yuklash',
+    's-results':'Tahlil natijalari','s-surveys':"So'rovnomalar ro'yxati",
+    's-about':'Loyiha haqida'
+  };
+  document.getElementById('topbar-title').textContent = titles[id] || '';
+  if (id === 's-surveys') loadSurveyList();
+}
+
+// ─── Stats ────────────────────────────────────────────────────────────────
+async function loadStats() {
+  const r = await fetch('/api/surveys').then(x=>x.json()).catch(()=>[]);
+  document.getElementById('stat-surveys').textContent = r.length || 0;
+}
+
+// ─── Upload / drag-drop ───────────────────────────────────────────────────
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+}
+
+async function handleFile(file) {
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!['csv','xlsx','xls'].includes(ext)) {
+    alert("Faqat CSV yoki Excel fayllar qabul qilinadi"); return;
+  }
+  const fd = new FormData();
+  fd.append('file', file);
+  const r = await fetch('/api/upload', {method:'POST', body:fd}).then(x=>x.json());
+  if (r.error) { alert(r.error); return; }
+  currentSurveyId = r.survey_id;
+
+  // Show preview
+  document.getElementById('upload-preview').classList.remove('d-none');
+  document.getElementById('upload-info').textContent =
+    `${r.filename} · ${r.rows} qator · ${r.columns.length} ustun`;
+
+  // Preview table
+  const wrap = document.getElementById('preview-table-wrap');
+  if (r.preview && r.preview.length) {
+    let th = r.columns.map(c=>`<th>${c}</th>`).join('');
+    let rows = r.preview.map(row =>
+      '<tr>' + r.columns.map(c=>`<td>${row[c]??''}</td>`).join('') + '</tr>'
+    ).join('');
+    wrap.innerHTML = `<table class="table table-sm table-bordered table-hover">
+      <thead class="table-dark"><tr>${th}</tr></thead><tbody>${rows}</tbody></table>`;
+  }
+
+  // Target column select
+  const sel = document.getElementById('target-col-select');
+  sel.innerHTML = '<option value="">— tanlang —</option>' +
+    r.columns.map(c=>`<option value="${c}">${c}</option>`).join('');
+}
+
+// ─── Analysis ─────────────────────────────────────────────────────────────
+async function startAnalysis() {
+  if (!currentSurveyId) { alert("Avval fayl yuklang"); return; }
+  const targetCol = document.getElementById('target-col-select').value;
+
+  const prog = document.getElementById('analyze-progress');
+  const bar  = document.getElementById('analyze-bar');
+  const stat = document.getElementById('analyze-status');
+  prog.classList.remove('d-none');
+
+  // Animate progress
+  let pct = 0;
+  const steps = [
+    [20, 'Ma\'lumotlar tozalanmoqda...'],
+    [45, 'Random Forest o\'qitilmoqda...'],
+    [65, 'K-means klasterlashtirish...'],
+    [80, 'Sentiment tahlil...'],
+    [95, 'Natijalar tayyorlanmoqda...'],
+  ];
+  let si = 0;
+  const timer = setInterval(()=>{
+    if (si < steps.length) { bar.style.width = steps[si][0]+'%'; stat.textContent = steps[si][1]; si++; }
+  }, 600);
+
+  const r = await fetch('/api/analyze', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({survey_id: currentSurveyId, target_col: targetCol || null})
+  }).then(x=>x.json());
+
+  clearInterval(timer);
+  bar.style.width = '100%'; stat.textContent = 'Tayyor!';
+
+  setTimeout(() => {
+    prog.classList.add('d-none');
+    if (r.error) { alert(r.error); return; }
+    renderResults(r.results);
+    showSection('s-results', document.querySelectorAll('#sidebar .nav-link')[2]);
+    loadStats();
+  }, 700);
+}
+
+// ─── Render results ───────────────────────────────────────────────────────
+function renderResults(res) {
+  document.getElementById('no-results').classList.add('d-none');
+  document.getElementById('results-container').classList.remove('d-none');
+
+  // Metrics row
+  const clf = res.classification;
+  const metrics = [];
+  if (clf && clf.accuracy) {
+    metrics.push({v: (clf.accuracy*100).toFixed(1)+'%', l:'Accuracy', c:'#2563eb'});
+    metrics.push({v: (clf.f1_weighted*100).toFixed(1)+'%', l:'F1-Score', c:'#16a34a'});
+    if (clf.auc) metrics.push({v: clf.auc, l:'AUC-ROC', c:'#9333ea'});
+    metrics.push({v: clf.cv_mean.toFixed(3)+'±'+clf.cv_std.toFixed(3), l:'CV natija', c:'#ca8a04'});
+  }
+  const clu = res.clustering;
+  if (clu && clu.optimal_k) {
+    metrics.push({v: 'K='+clu.optimal_k, l:'Optimal klaster', c:'#0891b2'});
+    metrics.push({v: clu.silhouette, l:'Silhouette', c:'#0d9488'});
+  }
+
+  document.getElementById('res-metrics-row').innerHTML = metrics.map(m=>`
+    <div class="col-md-2 col-sm-4">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:${m.c}22">
+          <i class="fas fa-chart-line" style="color:${m.c}"></i>
+        </div>
+        <div>
+          <div class="stat-val" style="font-size:18px;color:${m.c}">${m.v}</div>
+          <div class="stat-label">${m.l}</div>
+        </div>
+      </div>
+    </div>`).join('');
+
+  // Cluster chart
+  if (clu && clu.clusters) {
+    destroyChart('chart-cluster');
+    const ctx = document.getElementById('chart-cluster').getContext('2d');
+    const colors = ['#2563eb','#16a34a','#ca8a04','#be185d','#0891b2','#9333ea'];
+    charts['chart-cluster'] = new Chart(ctx, {
+      type:'doughnut',
+      data:{
+        labels: clu.clusters.map(c=>`Klaster ${c.id} (${c.pct}%)`),
+        datasets:[{
+          data: clu.clusters.map(c=>c.size),
+          backgroundColor: colors.slice(0,clu.clusters.length),
+          borderWidth: 2, borderColor:'#fff'
+        }]
+      },
+      options:{plugins:{legend:{position:'right'}}}
+    });
+
+    // Cluster table
+    document.getElementById('cluster-table').innerHTML =
+      `<table class="table table-sm">
+        <thead><tr><th>Klaster</th><th>Hajmi</th><th>%</th></tr></thead>
+        <tbody>${clu.clusters.map((c,i)=>`
+          <tr>
+            <td><span class="badge" style="background:${colors[i]}">Klaster ${c.id}</span></td>
+            <td>${c.size}</td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div style="height:6px;border-radius:3px;width:${c.pct}%;background:${colors[i]};max-width:80px;min-width:4px"></div>
+                <span>${c.pct}%</span>
+              </div>
+            </td>
+          </tr>`).join('')}
+        </tbody></table>`;
+  }
+
+  // Sentiment chart
+  const sent = res.sentiment;
+  if (sent && sent.counts) {
+    destroyChart('chart-sentiment');
+    const ctx2 = document.getElementById('chart-sentiment').getContext('2d');
+    charts['chart-sentiment'] = new Chart(ctx2, {
+      type:'pie',
+      data:{
+        labels:['Ijobiy','Neytral','Salbiy'],
+        datasets:[{
+          data:[sent.counts.ijobiy, sent.counts.neytral, sent.counts.salbiy],
+          backgroundColor:['#16a34a','#6b7280','#dc2626'],
+          borderWidth:2, borderColor:'#fff'
+        }]
+      },
+      options:{plugins:{legend:{position:'bottom'}}}
+    });
+
+    // Sentiment samples
+    if (sent.sample && sent.sample.length) {
+      document.getElementById('sentiment-samples').innerHTML =
+        `<table class="table table-sm">
+          <thead><tr><th>Matn</th><th>Compound</th><th>Baho</th></tr></thead>
+          <tbody>${sent.sample.map(s=>`
+            <tr>
+              <td style="max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.text}</td>
+              <td>${s.compound}</td>
+              <td><span class="badge ${s.label==='ijobiy'?'badge-pos':s.label==='salbiy'?'badge-neg':'badge-neu'}">${s.label}</span></td>
+            </tr>`).join('')}
+          </tbody></table>`;
+    }
+  }
+
+  // Feature importance chart
+  if (clf && clf.feature_importances && clf.feature_importances.length) {
+    destroyChart('chart-fi');
+    const fi = clf.feature_importances;
+    const topN = Math.min(10, fi.length);
+    const vals = fi.slice(0, topN).map(v => parseFloat(v.toFixed(3)));
+    const lbls = vals.map((_,i) => `Xususiyat ${i+1}`);
+    const ctx3 = document.getElementById('chart-fi').getContext('2d');
+    charts['chart-fi'] = new Chart(ctx3, {
+      type:'bar',
+      data:{
+        labels: lbls,
+        datasets:[{
+          label:'Muhimlik',
+          data: vals,
+          backgroundColor:'#2563eb88',
+          borderColor:'#2563eb',
+          borderWidth:1
+        }]
+      },
+      options:{
+        indexAxis:'y',
+        plugins:{legend:{display:false}},
+        scales:{x:{beginAtZero:true}}
+      }
+    });
+  }
+}
+
+function destroyChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+// ─── Survey list ──────────────────────────────────────────────────────────
+async function loadSurveyList() {
+  const wrap = document.getElementById('surveys-table-wrap');
+  wrap.innerHTML = '<div class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div></div>';
+  const r = await fetch('/api/surveys').then(x=>x.json()).catch(()=>[]);
+  if (!r.length) {
+    wrap.innerHTML = '<div class="text-center py-5 text-muted">Hali hech qanday fayl yuklanmagan</div>';
+    return;
+  }
+  wrap.innerHTML = `<table class="table table-sm table-hover mb-0">
+    <thead class="table-light"><tr><th>#</th><th>Fayl nomi</th><th>ID</th><th>Sana</th><th></th></tr></thead>
+    <tbody>${r.map((s,i)=>`
+      <tr>
+        <td>${i+1}</td>
+        <td><i class="fas fa-file-csv text-success me-1"></i>${s.filename}</td>
+        <td><code>${s.id}</code></td>
+        <td class="text-muted">${s.created_at||''}</td>
+        <td>
+          <button class="btn btn-xs btn-sm btn-outline-primary py-0 px-2" 
+                  onclick="loadAndShow('${s.id}')">
+            <i class="fas fa-eye"></i>
+          </button>
+        </td>
+      </tr>`).join('')}
+    </tbody></table>`;
+  document.getElementById('stat-surveys').textContent = r.length;
+}
+
+async function loadAndShow(id) {
+  const r = await fetch(`/api/results/${id}`).then(x=>x.json()).catch(()=>null);
+  if (!r) { alert("Bu so'rovnoma uchun tahlil natijalari yo'q. Avval tahlil bajaring."); return; }
+  currentSurveyId = id;
+  renderResults(r);
+  showSection('s-results', document.querySelectorAll('#sidebar .nav-link')[2]);
+}
+</script>
+</body>
+</html>
